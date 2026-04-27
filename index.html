@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,57 +12,61 @@
             --grid-bg: #262626;
             --cell-bg: #333333;
             --text-color: #ffffff;
-            --tile-size: 90px;
+            --tile-text-dark: #776e65;
+            --tile-text-light: #f9f6f2;
+            --tile-size: 85px;
             --tile-gap: 12px;
-            --move-speed: 125ms;
+            --move-speed: 110ms;
         }
 
-        /* Theme Variations */
         body.theme-light {
             --bg-color: #faf8ef;
             --grid-bg: #bbada0;
-            --cell-bg: #cdc1b4;
+            --cell-bg: rgba(238, 228, 218, 0.35);
             --text-color: #776e65;
         }
 
-        body.theme-cyber {
-            --bg-color: #0d0221;
-            --grid-bg: #261447;
-            --cell-bg: #5a189a;
-            --text-color: #ff0054;
-        }
-
         @media (max-width: 500px) {
-            :root { --tile-size: 70px; --tile-gap: 8px; }
+            :root { --tile-size: 72px; --tile-gap: 10px; }
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Inter', system-ui, sans-serif;
-            transition: background-color 0.3s;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s ease;
             margin: 0;
             overflow: hidden;
             touch-action: none;
         }
 
-        .centered-layout {
+        .main-stage {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             width: 100vw;
-            gap: 20px;
+            gap: 24px;
+        }
+
+        /* Title Area */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: calc((var(--tile-size) * 4) + (var(--tile-gap) * 5));
+            padding: 0 10px;
         }
 
         .game-board {
             position: relative;
             background-color: var(--grid-bg);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: var(--tile-gap);
             user-select: none;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
         }
 
         .grid-layer {
@@ -73,7 +78,7 @@
             width: var(--tile-size);
             height: var(--tile-size);
             background-color: var(--cell-bg);
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
         .tile-layer {
@@ -87,18 +92,23 @@
             position: absolute;
             width: var(--tile-size);
             height: var(--tile-size);
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: calc(var(--tile-size) * 0.4);
+            font-size: calc(var(--tile-size) * 0.42);
             transition: transform var(--move-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
         }
 
-        /* Animations */
-        .animate-spawn { animation: spawn 200ms ease-out forwards; }
-        .animate-pop { animation: pop 200ms ease-in-out; }
+        /* Specific text sizes for larger numbers */
+        .tile-128, .tile-256, .tile-512 { font-size: calc(var(--tile-size) * 0.35); }
+        .tile-1024, .tile-2048 { font-size: calc(var(--tile-size) * 0.3); }
+
+        /* Smooth Animations */
+        .animate-spawn { animation: spawn 150ms ease-out forwards; }
+        .animate-pop { z-index: 20; animation: pop 180ms ease-in-out; }
 
         @keyframes spawn {
             0% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
@@ -106,116 +116,122 @@
         }
         @keyframes pop {
             0% { transform: translate(var(--tx), var(--ty)) scale(1); }
-            50% { transform: translate(var(--tx), var(--ty)) scale(1.15); }
+            50% { transform: translate(var(--tx), var(--ty)) scale(1.18); }
             100% { transform: translate(var(--tx), var(--ty)) scale(1); }
         }
 
-        /* Colors based on standard 2048 */
+        /* Tile Color System */
         .tile-2 { background: #eee4da; color: #776e65; }
         .tile-4 { background: #ede0c8; color: #776e65; }
         .tile-8 { background: #f2b179; color: white; }
         .tile-16 { background: #f59563; color: white; }
         .tile-32 { background: #f67c5f; color: white; }
         .tile-64 { background: #f65e3b; color: white; }
-        .tile-128 { background: #edcf72; color: white; box-shadow: 0 0 10px #edcf72; }
-        .tile-2048 { background: #edc22e; color: white; box-shadow: 0 0 20px #edc22e; }
+        .tile-128 { background: #edcf72; color: white; box-shadow: 0 0 8px #edcf72; }
+        .tile-256 { background: #edcc61; color: white; box-shadow: 0 0 12px #edcc61; }
+        .tile-512 { background: #edc850; color: white; box-shadow: 0 0 15px #edc850; }
+        .tile-1024 { background: #edc53f; color: white; }
+        .tile-2048 { background: #edc22e; color: white; box-shadow: 0 0 25px #edc22e; }
 
-        .btn {
-            background: #8f7a66;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            transition: opacity 0.2s;
+        .score-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: calc((var(--tile-size) * 4) + (var(--tile-gap) * 5));
+            padding: 0 10px;
         }
-        .btn:active { transform: scale(0.95); }
+
+        .score-box {
+            flex: 1;
+            background: var(--grid-bg);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
 
         /* Settings Sidebar */
         #settings-panel {
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             transform: translateX(100%);
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
         }
         #settings-panel.open { transform: translateX(0); }
+        
+        body.theme-light #settings-panel {
+            background: rgba(250, 248, 239, 0.95);
+            color: #776e65;
+            border-left: 1px solid #bbada0;
+        }
     </style>
 </head>
 <body>
 
-    <div class="centered-layout">
-        <!-- Header -->
-        <header class="flex justify-between items-end w-full max-w-[500px] px-4">
-            <div class="flex flex-col gap-2">
-                <h1 class="text-6xl font-black tracking-tighter leading-none">2048</h1>
-                <div class="flex gap-2">
-                    <button onclick="game.init()" class="btn text-sm uppercase">New Game</button>
-                    <button onclick="toggleSettings()" class="bg-gray-700 p-2 rounded-lg text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </button>
-                </div>
-            </div>
+    <div class="main-stage">
+        <!-- Title & Action -->
+        <div class="header-top">
+            <h1 class="text-5xl font-black tracking-tighter">2048</h1>
             <div class="flex gap-2">
-                <div class="bg-[#2d2d2d] px-4 py-2 rounded-lg text-center min-w-[80px]">
-                    <div class="text-[10px] uppercase font-bold opacity-50">Score</div>
-                    <div id="score" class="text-xl font-black">0</div>
-                </div>
-                <div class="bg-[#2d2d2d] px-4 py-2 rounded-lg text-center min-w-[80px]">
-                    <div class="text-[10px] uppercase font-bold opacity-50">Best</div>
-                    <div id="best" class="text-xl font-black">0</div>
-                </div>
+                <button onclick="game.init()" class="bg-[#8f7a66] hover:bg-[#7f6a56] text-white font-bold py-2 px-4 rounded-md uppercase text-sm transition-colors">New Game</button>
+                <button onclick="toggleSettings()" class="bg-[#bbada0] p-2 rounded-md text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
             </div>
-        </header>
+        </div>
 
         <!-- Board -->
         <div id="game-container" class="game-board">
             <div id="grid-layer" class="grid-layer"></div>
             <div id="tile-container" class="tile-layer"></div>
         </div>
+
+        <!-- Scores Bottom -->
+        <div class="score-row">
+            <div class="score-box">
+                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">Score</div>
+                <div id="score" class="text-2xl font-black">0</div>
+            </div>
+            <div class="score-box">
+                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">Best</div>
+                <div id="best" class="text-2xl font-black">0</div>
+            </div>
+        </div>
     </div>
 
     <!-- Settings Sidebar -->
-    <div id="settings-panel" class="fixed top-0 right-0 h-full w-80 bg-[#1e1e1e] shadow-2xl z-[100] p-6 border-l border-white/10">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-bold">Settings</h2>
-            <button onclick="toggleSettings()" class="text-gray-400 hover:text-white">✕</button>
+    <div id="settings-panel" class="fixed top-0 right-0 h-full w-72 z-[100] p-8 shadow-2xl">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="text-2xl font-black italic uppercase">Options</h2>
+            <button onclick="toggleSettings()" class="opacity-50 hover:opacity-100">✕</button>
         </div>
 
-        <div class="space-y-6">
-            <section>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Grid Size</label>
-                <div class="grid grid-cols-4 gap-2">
-                    <button onclick="game.updateSize(3)" class="bg-gray-800 p-2 rounded hover:bg-blue-600 transition">3x3</button>
-                    <button onclick="game.updateSize(4)" class="bg-gray-800 p-2 rounded hover:bg-blue-600 transition">4x4</button>
-                    <button onclick="game.updateSize(5)" class="bg-gray-800 p-2 rounded hover:bg-blue-600 transition">5x5</button>
-                    <button onclick="game.updateSize(6)" class="bg-gray-800 p-2 rounded hover:bg-blue-600 transition">6x6</button>
+        <div class="space-y-8">
+            <div>
+                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">Board Size</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="game.updateSize(3)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">3x3</button>
+                    <button onclick="game.updateSize(4)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">4x4</button>
+                    <button onclick="game.updateSize(5)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">5x5</button>
+                    <button onclick="game.updateSize(6)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">6x6</button>
                 </div>
-            </section>
+            </div>
 
-            <section>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Theme</label>
-                <select onchange="changeTheme(this.value)" class="w-full bg-gray-800 p-3 rounded-lg border border-white/10">
-                    <option value="dark">Dark Mode (Default)</option>
-                    <option value="light">Light Mode (Classic)</option>
-                    <option value="cyber">Cyberpunk</option>
-                </select>
-            </section>
-
-            <section>
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" onchange="toggleAnim(this.checked)" checked class="w-5 h-5 accent-blue-500">
-                    <span class="text-sm font-medium">Animations Enabled</span>
-                </label>
-            </section>
-        </div>
-
-        <div class="absolute bottom-6 left-6 right-6 text-center text-xs text-gray-600">
-            Progress is saved automatically
+            <div>
+                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">Appearance</label>
+                <div class="flex flex-col gap-2">
+                    <button onclick="changeTheme('dark')" class="text-left p-3 rounded-lg bg-[#2d2d2d] text-white font-bold border border-white/5">Dark Mode</button>
+                    <button onclick="changeTheme('light')" class="text-left p-3 rounded-lg bg-[#eee4da] text-[#776e65] font-bold border border-black/5">Light Mode</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Game Over -->
-    <div id="game-over" class="hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-[#2d2d2d] p-10 rounded-2xl text-center max-w-xs w-full shadow-2xl">
-            <h2 class="text-4xl font-black mb-6">Game Over</h2>
-            <button onclick="game.init()" class="btn w-full py-4 uppercase tracking-widest">Restart</button>
+    <!-- Modals -->
+    <div id="game-over" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-6">
+        <div class="bg-[#2d2d2d] p-12 rounded-3xl text-center max-w-sm w-full shadow-2xl border border-white/5">
+            <h2 class="text-5xl font-black mb-2 text-white">Oops!</h2>
+            <p class="text-gray-400 mb-8 font-bold">No more moves left.</p>
+            <button onclick="game.init()" class="w-full bg-[#8f7a66] text-white py-4 rounded-xl font-black uppercase tracking-widest text-lg shadow-xl active:scale-95 transition">Try Again</button>
         </div>
     </div>
 
@@ -229,10 +245,6 @@
             localStorage.setItem('2048-theme', theme);
         }
 
-        function toggleAnim(enabled) {
-            document.documentElement.style.setProperty('--move-speed', enabled ? '125ms' : '0ms');
-        }
-
         class Game2048 {
             constructor() {
                 this.gridLayer = document.getElementById('grid-layer');
@@ -243,15 +255,14 @@
                 this.size = parseInt(localStorage.getItem('2048-size')) || 4;
                 this.tiles = []; 
                 this.score = 0;
-                this.best = parseInt(localStorage.getItem('2048-best-v5')) || 0;
+                this.best = parseInt(localStorage.getItem('2048-best-v6')) || 0;
                 this.nextId = 0;
 
-                this.init();
-                this.setupInput();
-                this.bestEl.innerText = this.best;
+                const savedTheme = localStorage.getItem('2048-theme') || 'dark';
+                changeTheme(savedTheme);
 
-                const savedTheme = localStorage.getItem('2048-theme');
-                if(savedTheme) changeTheme(savedTheme);
+                this.setupInput();
+                this.init();
             }
 
             updateSize(n) {
@@ -269,7 +280,6 @@
                 this.tileContainer.innerHTML = '';
                 document.getElementById('game-over').classList.add('hidden');
 
-                // Generate Grid Layout
                 this.gridLayer.style.gridTemplateColumns = `repeat(${this.size}, 1fr)`;
                 for (let i = 0; i < this.size * this.size; i++) {
                     const cell = document.createElement('div');
@@ -301,9 +311,9 @@
                 this.scoreEl.innerText = this.score;
                 if (this.score > this.best) {
                     this.best = this.score;
-                    this.bestEl.innerText = this.best;
-                    localStorage.setItem('2048-best-v5', this.best);
+                    localStorage.setItem('2048-best-v6', this.best);
                 }
+                this.bestEl.innerText = this.best;
             }
 
             render() {
@@ -313,8 +323,12 @@
                 const tileGap = parseFloat(style.getPropertyValue('--tile-gap'));
                 const step = tileSize + tileGap;
 
+                // Sync DOM elements with state
                 Array.from(this.tileContainer.children).forEach(child => {
-                    if (!currentIds.has(child.id)) setTimeout(() => child.remove(), 100);
+                    if (!currentIds.has(child.id)) {
+                        child.style.opacity = '0';
+                        setTimeout(() => child.remove(), 120);
+                    }
                 });
 
                 this.tiles.forEach(t => {
@@ -401,10 +415,10 @@
             setupInput() {
                 window.addEventListener('keydown', e => {
                     const k = e.key.toLowerCase();
-                    if (k === 'arrowup' || k === 'w') this.move(0);
-                    if (k === 'arrowright' || k === 'd') this.move(1);
-                    if (k === 'arrowdown' || k === 's') this.move(2);
-                    if (k === 'arrowleft' || k === 'a') this.move(3);
+                    if (k === 'arrowup' || k === 'w') { e.preventDefault(); this.move(0); }
+                    if (k === 'arrowright' || k === 'd') { e.preventDefault(); this.move(1); }
+                    if (k === 'arrowdown' || k === 's') { e.preventDefault(); this.move(2); }
+                    if (k === 'arrowleft' || k === 'a') { e.preventDefault(); this.move(3); }
                 });
 
                 let sx, sy;
