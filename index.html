@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>snowive's 2048</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>2048</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -11,9 +11,7 @@
             --grid-bg: #262626;
             --cell-bg: #333333;
             --text-color: #ffffff;
-            --tile-text-dark: #776e65;
-            --tile-text-light: #f9f6f2;
-            --tile-size: 85px;
+            --tile-size: 85px; /* Will be overridden by JS */
             --tile-gap: 12px;
             --move-speed: 110ms;
         }
@@ -25,10 +23,6 @@
             --text-color: #776e65;
         }
 
-        @media (max-width: 500px) {
-            :root { --tile-size: 72px; --tile-gap: 10px; }
-        }
-
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -37,6 +31,10 @@
             margin: 0;
             overflow: hidden;
             touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
 
         /* Container for blur effect */
@@ -45,18 +43,19 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            width: 100vw;
+            width: 100%;
+            height: 100%;
             gap: 24px;
             transition: filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             will-change: filter, transform;
+            padding: 20px;
         }
 
         /* Blur state */
         body.settings-open .main-stage {
-            filter: blur(8px) brightness(0.6);
-            transform: scale(0.96);
-            pointer-events: none; /* Prevent interaction while settings are open */
+            filter: blur(12px) brightness(0.6);
+            transform: scale(0.95);
+            pointer-events: none;
         }
 
         /* Title Area */
@@ -65,8 +64,7 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: calc((var(--tile-size) * 4) + (var(--tile-gap) * 5));
-            padding: 0 10px;
+            max-width: 440px; /* Aligns with max board size */
         }
 
         .game-board {
@@ -143,8 +141,7 @@
             display: flex;
             gap: 12px;
             width: 100%;
-            max-width: calc((var(--tile-size) * 4) + (var(--tile-gap) * 5));
-            padding: 0 10px;
+            max-width: 440px;
         }
 
         .score-box {
@@ -159,19 +156,19 @@
         #settings-panel {
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             transform: translateX(100%);
-            background: rgba(30, 30, 30, 0.85);
-            backdrop-filter: blur(15px);
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
         #settings-panel.open { transform: translateX(0); }
         
         body.theme-light #settings-panel {
-            background: rgba(250, 248, 239, 0.85);
+            background: rgba(250, 248, 239, 0.8);
             color: #776e65;
             border-left: 1px solid rgba(0, 0, 0, 0.1);
         }
 
-        /* Overlay to click-off menu */
         #menu-overlay {
             position: fixed;
             inset: 0;
@@ -189,9 +186,9 @@
 
     <div class="main-stage">
         <div class="header-top">
-            <h1 class="text-5xl font-black tracking-tighter">2048</h1>
+            <h1 class="text-4xl md:text-5xl font-black tracking-tighter">2048</h1>
             <div class="flex gap-2">
-                <button onclick="game.init()" class="bg-[#8f7a66] hover:bg-[#7f6a56] text-white font-bold py-2 px-4 rounded-md uppercase text-sm transition-colors">New Game</button>
+                <button onclick="game.init()" class="bg-[#8f7a66] hover:bg-[#7f6a56] text-white font-bold py-2 px-4 rounded-md uppercase text-xs md:text-sm transition-colors">New Game</button>
                 <button onclick="toggleSettings()" class="bg-[#bbada0] p-2 rounded-md text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -205,25 +202,25 @@
 
         <div class="score-row">
             <div class="score-box">
-                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">score</div>
-                <div id="score" class="text-2xl font-black">0</div>
+                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">Score</div>
+                <div id="score" class="text-xl md:text-2xl font-black">0</div>
             </div>
             <div class="score-box">
-                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">best</div>
-                <div id="best" class="text-2xl font-black">0</div>
+                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">Best</div>
+                <div id="best" class="text-xl md:text-2xl font-black">0</div>
             </div>
         </div>
     </div>
 
     <div id="settings-panel" class="fixed top-0 right-0 h-full w-72 z-[100] p-8 shadow-2xl">
         <div class="flex justify-between items-center mb-10">
-            <h2 class="text-2xl font-black italic uppercase">options</h2>
+            <h2 class="text-2xl font-black italic uppercase">Options</h2>
             <button onclick="toggleSettings()" class="opacity-50 hover:opacity-100 text-2xl">✕</button>
         </div>
 
         <div class="space-y-8">
             <div>
-                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">board size</label>
+                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">Board Size</label>
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="game.updateSize(3)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">3x3</button>
                     <button onclick="game.updateSize(4)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">4x4</button>
@@ -233,10 +230,10 @@
             </div>
 
             <div>
-                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">appearance</label>
+                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">Appearance</label>
                 <div class="flex flex-col gap-2">
-                    <button onclick="changeTheme('dark')" class="text-left p-3 rounded-lg bg-[#2d2d2d] text-white font-bold border border-white/5">dark mode</button>
-                    <button onclick="changeTheme('light')" class="text-left p-3 rounded-lg bg-[#eee4da] text-[#776e65] font-bold border border-black/10">light mode</button>
+                    <button onclick="changeTheme('dark')" class="text-left p-3 rounded-lg bg-[#2d2d2d] text-white font-bold border border-white/5">Dark Mode</button>
+                    <button onclick="changeTheme('light')" class="text-left p-3 rounded-lg bg-[#eee4da] text-[#776e65] font-bold border border-black/10">Light Mode</button>
                 </div>
             </div>
         </div>
@@ -244,8 +241,8 @@
 
     <div id="game-over" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-6">
         <div class="bg-[#2d2d2d] p-12 rounded-3xl text-center max-w-sm w-full shadow-2xl border border-white/5">
-            <h2 class="text-5xl font-black mb-2 text-white">GAME OVER</h2>
-            <p class="text-gray-400 mb-8 font-bold">no more moves left.</p>
+            <h2 class="text-5xl font-black mb-2 text-white">Oops!</h2>
+            <p class="text-gray-400 mb-8 font-bold">No more moves left.</p>
             <button onclick="game.init()" class="w-full bg-[#8f7a66] text-white py-4 rounded-xl font-black uppercase tracking-widest text-lg shadow-xl active:scale-95 transition">Try Again</button>
         </div>
     </div>
@@ -280,8 +277,26 @@
                 const savedTheme = localStorage.getItem('2048-theme') || 'dark';
                 changeTheme(savedTheme);
 
+                window.addEventListener('resize', () => this.resize());
                 this.setupInput();
                 this.init();
+            }
+
+            resize() {
+                // Calculate ideal tile size based on viewport
+                const padding = 40; // Total horizontal padding for mobile
+                const maxBoardWidth = Math.min(window.innerWidth - padding, 440);
+                const maxBoardHeight = window.innerHeight - 250; // Leave space for header/score
+                const boardLimit = Math.min(maxBoardWidth, maxBoardHeight);
+                
+                const gap = 12;
+                const totalGap = (this.size + 1) * gap;
+                const tileSize = (boardLimit - totalGap) / this.size;
+
+                document.documentElement.style.setProperty('--tile-size', `${tileSize}px`);
+                document.documentElement.style.setProperty('--tile-gap', `${gap}px`);
+                
+                this.render();
             }
 
             updateSize(n) {
@@ -306,6 +321,7 @@
                     this.gridLayer.appendChild(cell);
                 }
 
+                this.resize();
                 this.addRandomTile();
                 this.addRandomTile();
                 this.render();
@@ -342,6 +358,7 @@
                 const tileGap = parseFloat(style.getPropertyValue('--tile-gap'));
                 const step = tileSize + tileGap;
 
+                // Sync DOM
                 Array.from(this.tileContainer.children).forEach(child => {
                     if (!currentIds.has(child.id)) {
                         child.style.opacity = '0';
@@ -435,10 +452,15 @@
             setupInput() {
                 window.addEventListener('keydown', e => {
                     const k = e.key.toLowerCase();
-                    if (k === 'arrowup' || k === 'w') { e.preventDefault(); this.move(0); }
-                    if (k === 'arrowright' || k === 'd') { e.preventDefault(); this.move(1); }
-                    if (k === 'arrowdown' || k === 's') { e.preventDefault(); this.move(2); }
-                    if (k === 'arrowleft' || k === 'a') { e.preventDefault(); this.move(3); }
+                    if (k.startsWith('arrow') || ['w','a','s','d'].includes(k)) {
+                        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(k)) {
+                             e.preventDefault();
+                        }
+                    }
+                    if (k === 'arrowup' || k === 'w') this.move(0);
+                    if (k === 'arrowright' || k === 'd') this.move(1);
+                    if (k === 'arrowdown' || k === 's') this.move(2);
+                    if (k === 'arrowleft' || k === 'a') this.move(3);
                 });
 
                 let sx, sy;
