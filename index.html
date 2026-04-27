@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snowive's 2048</title>
+    <title>snowive's 2048</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -40,6 +39,7 @@
             touch-action: none;
         }
 
+        /* Container for blur effect */
         .main-stage {
             display: flex;
             flex-direction: column;
@@ -48,6 +48,15 @@
             height: 100vh;
             width: 100vw;
             gap: 24px;
+            transition: filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: filter, transform;
+        }
+
+        /* Blur state */
+        body.settings-open .main-stage {
+            filter: blur(8px) brightness(0.6);
+            transform: scale(0.96);
+            pointer-events: none; /* Prevent interaction while settings are open */
         }
 
         /* Title Area */
@@ -102,11 +111,9 @@
             z-index: 10;
         }
 
-        /* Specific text sizes for larger numbers */
         .tile-128, .tile-256, .tile-512 { font-size: calc(var(--tile-size) * 0.35); }
         .tile-1024, .tile-2048 { font-size: calc(var(--tile-size) * 0.3); }
 
-        /* Smooth Animations */
         .animate-spawn { animation: spawn 150ms ease-out forwards; }
         .animate-pop { z-index: 20; animation: pop 180ms ease-in-out; }
 
@@ -120,7 +127,6 @@
             100% { transform: translate(var(--tx), var(--ty)) scale(1); }
         }
 
-        /* Tile Color System */
         .tile-2 { background: #eee4da; color: #776e65; }
         .tile-4 { background: #ede0c8; color: #776e65; }
         .tile-8 { background: #f2b179; color: white; }
@@ -153,22 +159,35 @@
         #settings-panel {
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             transform: translateX(100%);
-            background: rgba(30, 30, 30, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(15px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
         #settings-panel.open { transform: translateX(0); }
         
         body.theme-light #settings-panel {
-            background: rgba(250, 248, 239, 0.95);
+            background: rgba(250, 248, 239, 0.85);
             color: #776e65;
-            border-left: 1px solid #bbada0;
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Overlay to click-off menu */
+        #menu-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            display: none;
+        }
+        body.settings-open #menu-overlay {
+            display: block;
         }
     </style>
 </head>
 <body>
 
+    <div id="menu-overlay" onclick="toggleSettings()"></div>
+
     <div class="main-stage">
-        <!-- Title & Action -->
         <div class="header-top">
             <h1 class="text-5xl font-black tracking-tighter">2048</h1>
             <div class="flex gap-2">
@@ -179,35 +198,32 @@
             </div>
         </div>
 
-        <!-- Board -->
         <div id="game-container" class="game-board">
             <div id="grid-layer" class="grid-layer"></div>
             <div id="tile-container" class="tile-layer"></div>
         </div>
 
-        <!-- Scores Bottom -->
         <div class="score-row">
             <div class="score-box">
-                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">Score</div>
+                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">score</div>
                 <div id="score" class="text-2xl font-black">0</div>
             </div>
             <div class="score-box">
-                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">Best</div>
+                <div class="text-[10px] uppercase font-black opacity-60 tracking-widest">best</div>
                 <div id="best" class="text-2xl font-black">0</div>
             </div>
         </div>
     </div>
 
-    <!-- Settings Sidebar -->
     <div id="settings-panel" class="fixed top-0 right-0 h-full w-72 z-[100] p-8 shadow-2xl">
         <div class="flex justify-between items-center mb-10">
-            <h2 class="text-2xl font-black italic uppercase">Options</h2>
-            <button onclick="toggleSettings()" class="opacity-50 hover:opacity-100">✕</button>
+            <h2 class="text-2xl font-black italic uppercase">options</h2>
+            <button onclick="toggleSettings()" class="opacity-50 hover:opacity-100 text-2xl">✕</button>
         </div>
 
         <div class="space-y-8">
             <div>
-                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">Board Size</label>
+                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">board size</label>
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="game.updateSize(3)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">3x3</button>
                     <button onclick="game.updateSize(4)" class="bg-[#bbada0]/20 p-3 rounded-lg hover:bg-[#8f7a66] hover:text-white transition font-bold">4x4</button>
@@ -217,31 +233,34 @@
             </div>
 
             <div>
-                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">Appearance</label>
+                <label class="block text-[11px] font-black uppercase opacity-50 mb-3 tracking-[0.2em]">appearance</label>
                 <div class="flex flex-col gap-2">
-                    <button onclick="changeTheme('dark')" class="text-left p-3 rounded-lg bg-[#2d2d2d] text-white font-bold border border-white/5">Dark Mode</button>
-                    <button onclick="changeTheme('light')" class="text-left p-3 rounded-lg bg-[#eee4da] text-[#776e65] font-bold border border-black/5">Light Mode</button>
+                    <button onclick="changeTheme('dark')" class="text-left p-3 rounded-lg bg-[#2d2d2d] text-white font-bold border border-white/5">dark mode</button>
+                    <button onclick="changeTheme('light')" class="text-left p-3 rounded-lg bg-[#eee4da] text-[#776e65] font-bold border border-black/10">light mode</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
     <div id="game-over" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-6">
         <div class="bg-[#2d2d2d] p-12 rounded-3xl text-center max-w-sm w-full shadow-2xl border border-white/5">
-            <h2 class="text-5xl font-black mb-2 text-white">Oops!</h2>
-            <p class="text-gray-400 mb-8 font-bold">No more moves left.</p>
+            <h2 class="text-5xl font-black mb-2 text-white">GAME OVER</h2>
+            <p class="text-gray-400 mb-8 font-bold">no more moves left.</p>
             <button onclick="game.init()" class="w-full bg-[#8f7a66] text-white py-4 rounded-xl font-black uppercase tracking-widest text-lg shadow-xl active:scale-95 transition">Try Again</button>
         </div>
     </div>
 
     <script>
         function toggleSettings() {
-            document.getElementById('settings-panel').classList.toggle('open');
+            const panel = document.getElementById('settings-panel');
+            const body = document.body;
+            panel.classList.toggle('open');
+            body.classList.toggle('settings-open');
         }
 
         function changeTheme(theme) {
-            document.body.className = `theme-${theme}`;
+            document.body.classList.remove('theme-light', 'theme-dark');
+            document.body.classList.add(`theme-${theme}`);
             localStorage.setItem('2048-theme', theme);
         }
 
@@ -323,7 +342,6 @@
                 const tileGap = parseFloat(style.getPropertyValue('--tile-gap'));
                 const step = tileSize + tileGap;
 
-                // Sync DOM elements with state
                 Array.from(this.tileContainer.children).forEach(child => {
                     if (!currentIds.has(child.id)) {
                         child.style.opacity = '0';
@@ -354,6 +372,8 @@
             }
 
             move(dir) {
+                if (document.body.classList.contains('settings-open')) return;
+                
                 const vec = [{r:-1,c:0}, {r:0,c:1}, {r:1,c:0}, {r:0,c:-1}][dir];
                 let moved = false;
                 let scoreInc = 0;
